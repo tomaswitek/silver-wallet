@@ -12,7 +12,7 @@
     "turbo": "^2.0.7"
   },
   "name": "with-vite",
-  "packageManager": "yarn@1.22.22",
+  "packageManager": "yarn@4.3.1",
   "workspaces": [
     "apps/*",
     "packages/*"
