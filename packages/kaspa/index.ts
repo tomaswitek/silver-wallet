@@ -1,9 +1,7 @@
-import * as kaspa from "@repo/kaspa-wasm";
-
-const {Mnemonic, PrivateKey} = kaspa;
+import {default as kaspa, Mnemonic, PrivateKey} from "@repo/kaspa-wasm";
 
 export async function initKaspa() {
-  await kaspa.default();
+  await kaspa();
 }
 
 export function generatePrivateKey(wordCount = 12, password = "password") {
