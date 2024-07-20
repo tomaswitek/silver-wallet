@@ -1,6 +1,6 @@
 import {useState, useEffect} from "react";
 import "./App.css";
-import {createWallet, Address} from "./wallet";
+import {initWasm, createWallet, Address} from "./wallet";
 
 function App() {
   const [address, setAddress] = useState<Address | null>(null);
@@ -10,6 +10,7 @@ function App() {
   useEffect(() => {
     async function init() {
       try {
+        await initWasm();
         setLoading(true);
         const wallet = await createWallet();
         setAddress(wallet.address);
