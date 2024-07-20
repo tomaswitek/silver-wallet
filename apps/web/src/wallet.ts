@@ -4,6 +4,7 @@ export {type Address} from "@repo/kaspa-wasm";
 export async function createWallet() {
   // TODO: put this call in a different init function and also I had to manually copy the was file into public, add a compile step for it?
   // it looks like it does not go via the vite wasm plugin yet
+  // https://github.com/kaspanet/rusty-kaspa/blob/master/wasm/examples/web/index.html#L83
   await kaspa.default("kaspa_bg.wasm");
   const wallet = new kaspa.Wallet({});
   const {accountDescriptor} = await wallet.accountsCreate({
