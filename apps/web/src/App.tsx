@@ -66,13 +66,10 @@ function App() {
   useEffect(() => {
     let rpcClient: RpcClientResponse | undefined;
     async function init() {
-      await initKaspa();
       if (address) {
         rpcClient = await initRpcClient(address, handleEvent);
-        // rpcClient?.processor.addEventListener((event) => {
-        //   console.log(event);
-        // });
       } else {
+        await initKaspa();
         await generateAddress();
       }
     }
