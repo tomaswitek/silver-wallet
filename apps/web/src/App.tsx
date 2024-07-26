@@ -4,24 +4,33 @@ import {
   initKaspa,
   generatePrivateKey,
   getAddressFromPrivateKey,
+  Address,
+  initRpcClient,
+  RpcClientResponse,
+  UtxoProcessorNotificationCallback,
+  UtxoProcessorEventType,
+  IBalanceEvent,
 } from "@repo/kaspa";
 import useLocalStorageState from "use-local-storage-state";
 
 function App() {
-  const [address, setAddress] = useLocalStorageState<string | null>("address");
-  const [seedPhrase, setSeedPhrase] = useLocalStorageState<string | null>(
+  const [address, setAddress] = useState<Address | undefined>();
+  // TODO: implement password input
+  const [password] = useState<string>("password");
+  const [seedPhrase, setSeedPhrase] = useLocalStorageState<string | undefined>(
     "seedPhrase"
   );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | undefined>();
+  const [balance, setBalance] = useState<bigint | undefined>();
 
   const generateAddress = async () => {
     try {
       setLoading(true);
-      const key = await generatePrivateKey();
+      const key = await generatePrivateKey(password, seedPhrase);
       const address = getAddressFromPrivateKey(key.privateKey);
       setSeedPhrase(key.seedPhrase);
-      setAddress(address.toString());
+      setAddress(address);
     } catch (err) {
       setError("Error generating address");
       console.error(err);
@@ -30,14 +39,50 @@ function App() {
     }
   };
 
+  const regenerateAddress = async () => {
+    setSeedPhrase(undefined);
+    setAddress(undefined);
+    await generateAddress();
+  };
+
+  const handleEvent: UtxoProcessorNotificationCallback = (e) => {
+    // TODO: there seems to be a mismatch in tpye defs in kaspa-wasm
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const eventType = (e as any).type as UtxoProcessorEventType;
+    switch (eventType) {
+      // TODO: it is only exported as type and not as enum
+      // case UtxoProcessorEventType.Balance:
+      case "balance": {
+        const data = e.data as IBalanceEvent;
+        setBalance(data.balance?.mature);
+        break;
+      }
+      default: {
+        console.log(eventType, e.data);
+      }
+    }
+  };
+
   useEffect(() => {
+    let rpcClient: RpcClientResponse | undefined;
     async function init() {
       await initKaspa();
-      if (!address) {
+      if (address) {
+        rpcClient = await initRpcClient(address, handleEvent);
+        // rpcClient?.processor.addEventListener((event) => {
+        //   console.log(event);
+        // });
+      } else {
         await generateAddress();
       }
     }
     init();
+    return () => {
+      if (rpcClient) {
+        rpcClient.processor.stop();
+        rpcClient.rpc.disconnect();
+      }
+    };
   }, [address]);
 
   return (
@@ -45,10 +90,16 @@ function App() {
       <h1>Silver Wallet</h1>
       <div className="card">
         {error ? <p style={{color: "red"}}>{error}</p> : null}
-        <p>Address: {loading ? "Loading..." : address}</p>
-        <p>Seed Phrase: {loading ? "Loading..." : seedPhrase}</p>
+        <h2>Balance: {balance ? balance.toString() : "0"}</h2>
+        <p>
+          <strong>Address:</strong>
+          {loading ? "Loading..." : address?.toString()}
+        </p>
+        <p>
+          <strong>Seed Phrase:</strong> {loading ? "Loading..." : seedPhrase}
+        </p>
       </div>
-      <button onClick={generateAddress}>Generate Address</button>
+      <button onClick={regenerateAddress}>Generate New Address</button>
     </>
   );
 }
