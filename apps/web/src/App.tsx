@@ -5,10 +5,13 @@ import {
   generatePrivateKey,
   getAddressFromPrivateKey,
 } from "@repo/kaspa";
+import useLocalStorageState from "use-local-storage-state";
 
 function App() {
-  const [address, setAddress] = useState<string | null>(null);
-  const [seedPhrase, setSeedPhrase] = useState<string | null>(null);
+  const [address, setAddress] = useLocalStorageState<string | null>("address");
+  const [seedPhrase, setSeedPhrase] = useLocalStorageState<string | null>(
+    "seedPhrase"
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

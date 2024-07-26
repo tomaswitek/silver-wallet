@@ -3200,6 +3200,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"use-local-storage-state@npm:^19.3.1":
+  version: 19.3.1
+  resolution: "use-local-storage-state@npm:19.3.1"
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  checksum: 10c0/4f87ee4261a7689cfd4f5cb317e4d893ad752966f36c4a2639286efb3e166dc38a4a63f154bc2ffe5b38644de648a44ffcf8514332a7994ef257591c44678998
+  languageName: node
+  linkType: hard
+
 "uuid@npm:^10.0.0":
   version: 10.0.0
   resolution: "uuid@npm:10.0.0"
@@ -3321,6 +3331,7 @@ __metadata:
     eslint: "npm:^8.57.0"
     prettier: "npm:^3.2.5"
     turbo: "npm:^2.0.7"
+    use-local-storage-state: "npm:^19.3.1"
   languageName: unknown
   linkType: soft
 

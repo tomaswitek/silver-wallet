@@ -16,5 +16,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "use-local-storage-state": "^19.3.1"
+  }
 }
