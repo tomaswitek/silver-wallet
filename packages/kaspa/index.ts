@@ -18,6 +18,7 @@ export {
   type UtxoProcessorEventType,
   TransactionRecordNotification,
   type IBalanceEvent,
+  RpcClient,
 } from "@repo/kaspa-wasm";
 
 const NETWORK_TYPE = "mainnet";
@@ -39,11 +40,6 @@ export function generatePrivateKey(password: string, seedPhrase?: string) {
 
 export function getAddressFromPrivateKey(privateKey: PrivateKey) {
   return privateKey.toKeypair().toAddress(NETWORK_TYPE);
-}
-
-export interface RpcClientResponse {
-  rpc: RpcClient;
-  processor: UtxoProcessor;
 }
 
 export async function initRpcClient(
@@ -70,14 +66,17 @@ export async function initRpcClient(
   // 5) Once the environment is setup, connect to RPC
   console.log(`Connecting to ${NETWORK_TYPE}`);
   await rpc.connect();
-  // for local nodes, wait for the node to sync
-  const {isSynced} = await rpc.getServerInfo();
-  if (!isSynced) {
-    console.error("Please wait for the node to sync");
-    rpc.disconnect();
-    return;
-  }
+  // fetch initial info
+  // await rpc.getServerInfo();
+  // subscribe to utxos changed
+  await rpc.subscribeUtxosChanged([address]);
+  // if (!isSynced) {
+  //   console.error("Please wait for the node to sync");
+  //   rpc.disconnect();
+  //   return;
+  // }
+  // rpc.
   // 6) Register the address list with the UtxoContext
   await context.trackAddresses([address], undefined);
-  return {rpc, processor};
+  return rpc;
 }

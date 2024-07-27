@@ -6,12 +6,19 @@ import {
   getAddressFromPrivateKey,
   Address,
   initRpcClient,
-  RpcClientResponse,
   UtxoProcessorNotificationCallback,
   UtxoProcessorEventType,
   IBalanceEvent,
+  RpcClient,
 } from "@repo/kaspa";
 import useLocalStorageState from "use-local-storage-state";
+import {Amount} from "./Amount";
+
+enum NodeStatus {
+  Disconnected = "Disconnected",
+  Connecting = "Connecting",
+  Connected = "Connected",
+}
 
 function App() {
   const [address, setAddress] = useState<Address | undefined>();
@@ -23,6 +30,10 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [balance, setBalance] = useState<bigint | undefined>();
+  const [nodeStatus, setNodeStatus] = useState<NodeStatus>(
+    NodeStatus.Disconnected
+  );
+  const [rpcClient, setRpcClient] = useState<RpcClient | undefined>();
 
   const generateAddress = async () => {
     try {
@@ -55,6 +66,15 @@ function App() {
       case "balance": {
         const data = e.data as IBalanceEvent;
         setBalance(data.balance?.mature);
+        console.log(data);
+        break;
+      }
+      case "connect": {
+        setNodeStatus(NodeStatus.Connected);
+        break;
+      }
+      case "daa-score-change": {
+        // do nothing, this event is triggered a lot
         break;
       }
       default: {
@@ -64,10 +84,11 @@ function App() {
   };
 
   useEffect(() => {
-    let rpcClient: RpcClientResponse | undefined;
     async function init() {
       if (address) {
-        rpcClient = await initRpcClient(address, handleEvent);
+        setNodeStatus(NodeStatus.Connecting);
+        const rpc = await initRpcClient(address, handleEvent);
+        setRpcClient(rpc);
       } else {
         await initKaspa();
         await generateAddress();
@@ -76,24 +97,39 @@ function App() {
     init();
     return () => {
       if (rpcClient) {
-        rpcClient.processor.stop();
-        rpcClient.rpc.disconnect();
+        rpcClient.disconnect();
       }
     };
   }, [address]);
 
+  useEffect(() => {
+    if (rpcClient) {
+      rpcClient.addEventListener("utxos-changed", async () => {
+        const response = await rpcClient.getBalanceByAddress({
+          address: address!.toString(),
+        });
+        setBalance(response.balance);
+      });
+    }
+  }, [address, rpcClient]);
+
   return (
     <>
-      <h1>Silver Wallet</h1>
+      <h1>Silver Wallet </h1>
       <div className="card">
         {error ? <p style={{color: "red"}}>{error}</p> : null}
-        <h2>Balance: {balance ? balance.toString() : "0"}</h2>
+        <h2>
+          Balance: <Amount value={balance} />
+        </h2>
         <p>
           <strong>Address:</strong>
           {loading ? "Loading..." : address?.toString()}
         </p>
         <p>
           <strong>Seed Phrase:</strong> {loading ? "Loading..." : seedPhrase}
+        </p>
+        <p>
+          <strong>Node Status:</strong> {nodeStatus}
         </p>
       </div>
       <button onClick={regenerateAddress}>Generate New Address</button>
