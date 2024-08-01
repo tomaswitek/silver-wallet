@@ -1,33 +1,14 @@
-# `Turborepo` Vite starter
+# Local development
 
-This is an official starter Turborepo.
+1. create `.env.local` file in the `apps/web` and add  `VITE_NETWORK_TYPE=testnet-11` in order to use testnet-11 instead
+   of mainnet _(default option)_
+2. `yarn install`
+3. `yarn dev`
 
-## Using this example
+# Useful links
 
-Run the following command:
-
-```sh
-npx create-turbo@latest -e with-vite
-```
-
-## What's inside?
-
-This Turborepo includes the following packages and apps:
-
-### Apps and Packages
-
-- `docs`: a vanilla [vite](https://vitejs.dev) ts app
-- `web`: another vanilla [vite](https://vitejs.dev) ts app
-- `@repo/ui`: a stub component & utility library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: shared `eslint` configurations
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package and app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+- [rusty Kaspa](https://github.com/kaspanet/rusty-kaspa) it is a rust library that can be used to interact with kaspa
+  nodes or to build wasm modules
+- [faucet-t11](https://faucet-t11.kaspa.ws/) it is a faucet that can be used to get some testnet coins
+- [KasWare](https://www.kasware.xyz/) it is handy wallet implementation that can be used to send transactions on
+  testnet (and mainnet)

@@ -21,7 +21,7 @@ export {
   RpcClient,
 } from "@repo/kaspa-wasm";
 
-const NETWORK_TYPE = "mainnet";
+const NETWORK_TYPE = import.meta.env.VITE_NETWORK_TYPE || "mainnet";
 const WORD_COUNT = 12;
 
 export async function initKaspa() {
