@@ -1,7 +1,14 @@
 {
   "name": "@repo/kaspa",
   "packageManager": "yarn@4.3.1",
+  "scripts": {
+    "lint": "eslint"
+  },
   "dependencies": {
-    "@noble/hashes": "^1.4.0"
+    "@noble/hashes": "^1.4.0",
+    "eslint": "^9.8.0"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*"
   }
 }

@@ -1,9 +1,8 @@
-
 interface Props {
   value?: bigint;
 }
 
-export function Amount({value}: Props) {
+export function Amount({ value }: Props) {
   const formatValue = (val: bigint): string => {
     const strValue = val.toString();
     const integerPart = strValue.slice(0, -8);

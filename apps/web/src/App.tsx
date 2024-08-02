@@ -1,18 +1,18 @@
-import {useState, useEffect} from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import {
-  initKaspa,
+  Address,
   generatePrivateKey,
   getAddressFromPrivateKey,
-  Address,
-  initRpcClient,
-  UtxoProcessorNotificationCallback,
-  UtxoProcessorEventType,
   IBalanceEvent,
+  initKaspa,
+  initRpcClient,
   RpcClient,
+  UtxoProcessorEventType,
+  UtxoProcessorNotificationCallback,
 } from "@repo/kaspa";
 import useLocalStorageState from "use-local-storage-state";
-import {Amount} from "./Amount";
+import { Amount } from "./Amount";
 
 enum NodeStatus {
   Disconnected = "Disconnected",
@@ -25,13 +25,13 @@ function App() {
   // TODO: implement password input
   const [password] = useState<string>("password");
   const [seedPhrase, setSeedPhrase] = useLocalStorageState<string | undefined>(
-    "seedPhrase"
+    "seedPhrase",
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [balance, setBalance] = useState<bigint | undefined>();
   const [nodeStatus, setNodeStatus] = useState<NodeStatus>(
-    NodeStatus.Disconnected
+    NodeStatus.Disconnected,
   );
   const [rpcClient, setRpcClient] = useState<RpcClient | undefined>();
 
@@ -94,6 +94,7 @@ function App() {
         await generateAddress();
       }
     }
+
     init();
     return () => {
       if (rpcClient) {
@@ -117,7 +118,7 @@ function App() {
     <>
       <h1>Silver Wallet </h1>
       <div className="card">
-        {error ? <p style={{color: "red"}}>{error}</p> : null}
+        {error ? <p style={{ color: "red" }}>{error}</p> : null}
         <h2>
           Balance: <Amount value={balance} />
         </h2>
