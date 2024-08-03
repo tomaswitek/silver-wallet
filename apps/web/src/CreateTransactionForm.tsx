@@ -8,12 +8,14 @@ interface Props {
 export function CreateTransactionForm(props: Props) {
   const { client } = props;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const address = formData.get("address");
     const amount = formData.get("amount");
-    console.log(address, amount);
+    if (address && amount) {
+      await client.sendTransaction(address.toString(), amount.toString());
+    }
   };
 
   return (
@@ -21,10 +23,16 @@ export function CreateTransactionForm(props: Props) {
       <h2>Send transaction</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <input name="address" placeholder="Address" />
+          <input
+            name="address"
+            placeholder="Address"
+            defaultValue={
+              "kaspa:qpwsd47u5jvhpewtswnwka0m0zelt5gy0gly4lqcgvc46wfgzf78yh3087alj"
+            }
+          />
         </div>
         <div>
-          <input name="amount" placeholder="Amount" />
+          <input name="amount" placeholder="Amount" defaultValue="0.2" />
         </div>
         <button type="submit">Send</button>
       </form>

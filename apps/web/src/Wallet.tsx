@@ -41,24 +41,18 @@ export function Wallet(props: WalletProps) {
     NodeStatus.Disconnected,
   );
 
-  const generateAddress = async () => {
+  const regenerateAddress = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const address = client.getAddress();
-      setSeedPhrase(client.seedPhrase);
-      setAddress(address);
+      const key = await client.generateNewPrivateKey();
+      setSeedPhrase(key.seedPhrase);
+      setAddress(client.getAddress());
     } catch (err) {
-      setError("Error generating address");
+      setError("Error generating new address");
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const regenerateAddress = async () => {
-    setSeedPhrase(undefined);
-    setAddress(undefined);
-    await generateAddress();
   };
 
   const handleEvent: UtxoProcessorNotificationCallback = (e) => {
@@ -90,9 +84,17 @@ export function Wallet(props: WalletProps) {
 
   useEffect(() => {
     async function init() {
-      await client.connect(handleEvent);
-      setAddress(client.getAddress());
-      setSeedPhrase(client.seedPhrase);
+      try {
+        setLoading(true);
+        await client.connect(handleEvent);
+        setAddress(client.getAddress());
+        setSeedPhrase(client.seedPhrase);
+      } catch (err) {
+        setError("Error connecting to node");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
 
     init();
