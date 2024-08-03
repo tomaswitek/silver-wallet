@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./App.css";
 import useLocalStorageState from "use-local-storage-state";
 import { Wallet } from "./Wallet";
 import { NETWORK_TYPE, SEED_PHRASE_KEY } from "./constants";
