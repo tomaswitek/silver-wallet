@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo } from "react";
-import "./App.css";
 import {
   Address,
   IBalanceEvent,
@@ -119,7 +118,7 @@ export function Wallet(props: WalletProps) {
     <>
       <div className="card">
         {error ? <p style={{ color: "red" }}>{error}</p> : null}
-        <h2>
+        <h2 className="bg-black text-white">
           Balance: <Amount value={balance} />
         </h2>
         <p>
