@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { KaspaClient } from "@repo/kaspa";
 
 interface Props {
@@ -7,14 +7,22 @@ interface Props {
 
 export function CreateTransactionForm(props: Props) {
   const { client } = props;
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const address = formData.get("address");
-    const amount = formData.get("amount");
-    if (address && amount) {
-      await client.sendTransaction(address.toString(), amount.toString());
+    try {
+      setLoading(true);
+      const formData = new FormData(e.target as HTMLFormElement);
+      const address = formData.get("address");
+      const amount = formData.get("amount");
+      if (address && amount) {
+        await client.sendTransaction(address.toString(), amount.toString());
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,7 +42,9 @@ export function CreateTransactionForm(props: Props) {
         <div>
           <input name="amount" placeholder="Amount" defaultValue="0.2" />
         </div>
-        <button type="submit">Send</button>
+        <button disabled={loading} type="submit">
+          {loading ? "Sending..." : "Send"}
+        </button>
       </form>
     </div>
   );
