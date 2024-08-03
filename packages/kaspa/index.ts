@@ -21,10 +21,11 @@ export {
   RpcClient,
 } from "@repo/kaspa-wasm";
 
-const NETWORK_TYPE = import.meta.env.VITE_NETWORK_TYPE || "mainnet";
 const WORD_COUNT = 12;
+let NETWORK_TYPE: string;
 
-export async function initKaspa() {
+export async function initKaspa(networkType = "mainnet") {
+  NETWORK_TYPE = networkType;
   await kaspa();
 }
 
@@ -35,7 +36,7 @@ export function generatePrivateKey(password: string, seedPhrase?: string) {
   const seed = mnemonic.toSeed(password);
   // TODO: why do I need 64 hex instead of generated 128? wtf
   const privateKey = new PrivateKey(seed.slice(0, 64));
-  return { privateKey, seedPhrase: mnemonic.phrase };
+  return {privateKey, seedPhrase: mnemonic.phrase};
 }
 
 export function getAddressFromPrivateKey(privateKey: PrivateKey) {
@@ -44,7 +45,7 @@ export function getAddressFromPrivateKey(privateKey: PrivateKey) {
 
 export async function initRpcClient(
   address: Address,
-  callback: UtxoProcessorNotificationCallback,
+  callback: UtxoProcessorNotificationCallback
 ) {
   // console.log(NETWORK_TYPE.toString());
   const networkId = new NetworkId(NETWORK_TYPE);
@@ -55,14 +56,14 @@ export async function initRpcClient(
     networkId,
   });
   // 2) Create UtxoProcessor, passing RPC to it
-  const processor = new UtxoProcessor({ rpc, networkId });
+  const processor = new UtxoProcessor({rpc, networkId});
   // 3) Register a listener with the UtxoProcessor::events
   processor.addEventListener(callback);
   await processor.start();
   // 4) Create one of more UtxoContext, passing UtxoProcessor to it
   // you can create UtxoContext objects as needed to monitor different
   // address sets.
-  const context = new UtxoContext({ processor });
+  const context = new UtxoContext({processor});
   // 5) Once the environment is setup, connect to RPC
   console.log(`Connecting to ${NETWORK_TYPE}`);
   await rpc.connect();

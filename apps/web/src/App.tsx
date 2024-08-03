@@ -13,6 +13,7 @@ import {
 } from "@repo/kaspa";
 import useLocalStorageState from "use-local-storage-state";
 import { Amount } from "./Amount";
+const NETWORK_TYPE = import.meta.env.VITE_NETWORK_TYPE;
 
 enum NodeStatus {
   Disconnected = "Disconnected",
@@ -90,7 +91,7 @@ function App() {
         const rpc = await initRpcClient(address, handleEvent);
         setRpcClient(rpc);
       } else {
-        await initKaspa();
+        await initKaspa(NETWORK_TYPE);
         await generateAddress();
       }
     }
