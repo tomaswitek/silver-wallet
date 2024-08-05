@@ -7,7 +7,7 @@ import wasm from "vite-plugin-wasm";
 // https://www.npmjs.com/package/vite-plugin-wasm
 export default defineConfig({
   server: {
-    port: 3000,
+    port: 3001,
   },
   plugins: [react(), wasm()],
   // worker: {

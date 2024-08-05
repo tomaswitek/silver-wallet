@@ -1,6 +1,9 @@
 import {
+  Address,
+  createTransactions,
   default as kaspa,
   Encoding,
+  kaspaToSompi,
   Mnemonic,
   NetworkId,
   PrivateKey,
@@ -8,13 +11,17 @@ import {
   RpcClient,
   UtxoContext,
   UtxoProcessor,
-  Address,
-  kaspaToSompi,
-  createTransactions,
   type UtxoProcessorNotificationCallback,
 } from "@repo/kaspa-wasm";
 
 const WORD_COUNT = 12;
+
+export interface KaspaClientOptions {
+  password: string;
+  label: string;
+  networkType?: string;
+  seedPhrase?: string;
+}
 
 export class KaspaClient {
   private networkType: string;
@@ -24,10 +31,10 @@ export class KaspaClient {
   public privateKey?: PrivateKey;
   public rpc?: RpcClient;
   public connected = false;
+  public label?: string;
 
-  constructor(networkType = "mainnet", password: string, seedPhrase?: string) {
-    console.log("constructor");
-    this.networkType = networkType;
+  constructor({ networkType, password, seedPhrase }: KaspaClientOptions) {
+    this.networkType = networkType || "mainnet";
     this.password = password;
     if (seedPhrase) {
       this.seedPhrase = seedPhrase;
@@ -43,7 +50,7 @@ export class KaspaClient {
     // load wasm files
     await kaspa();
     // generate private key first
-    this.generatePrivateKey(this.password, this.seedPhrase);
+    this.getPrivateKey(this.password, this.seedPhrase);
 
     const networkId = new NetworkId(this.networkType);
     // 1) Initialize RPC
@@ -121,7 +128,7 @@ export class KaspaClient {
     this.rpc?.disconnect();
   }
 
-  generatePrivateKey(password: string, seedPhrase?: string) {
+  getPrivateKey(password: string, seedPhrase?: string) {
     const mnemonic = seedPhrase
       ? new Mnemonic(seedPhrase)
       : Mnemonic.random(WORD_COUNT);
@@ -138,7 +145,7 @@ export class KaspaClient {
     if (oldAddress) {
       await this.rpc?.unsubscribeUtxosChanged([oldAddress]);
     }
-    const key = this.generatePrivateKey(this.password);
+    const key = this.getPrivateKey(this.password);
     const newAddress = this.getAddress();
     if (newAddress) {
       await this.rpc?.subscribeUtxosChanged([newAddress]);

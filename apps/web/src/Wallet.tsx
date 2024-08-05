@@ -1,11 +1,11 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import {
   Address,
   IBalanceEvent,
+  KaspaClient,
   UtxoProcessorEventType,
   UtxoProcessorNotificationCallback,
-  KaspaClient,
 } from "@repo/kaspa";
 import useLocalStorageState from "use-local-storage-state";
 import { Amount } from "./Amount";
@@ -19,17 +19,10 @@ enum NodeStatus {
 }
 
 interface WalletProps {
-  networkType: string;
-  password: string;
-  seedPhrase?: string;
+  client: KaspaClient;
 }
 
-export function Wallet(props: WalletProps) {
-  const { networkType, password, seedPhrase } = props;
-  const client = useMemo(
-    () => new KaspaClient(networkType, password, seedPhrase),
-    [password, seedPhrase, networkType],
-  );
+export function Wallet({ client }: WalletProps) {
   const [address, setAddress] = useState<Address | undefined>();
   const [, setSeedPhrase] = useLocalStorageState<string | undefined>(
     SEED_PHRASE_KEY,
@@ -123,11 +116,15 @@ export function Wallet(props: WalletProps) {
           Balance: <Amount value={balance} />
         </h2>
         <p>
+          <strong>Label:</strong> {client.label}
+        </p>
+        <p>
           <strong>Address:</strong>
           {loading ? "Loading..." : address?.toString()}
         </p>
         <p>
-          <strong>Seed Phrase:</strong> {loading ? "Loading..." : seedPhrase}
+          <strong>Seed Phrase:</strong>{" "}
+          {loading ? "Loading..." : client.seedPhrase}
         </p>
         <p>
           <strong>Node Status:</strong> {nodeStatus}
