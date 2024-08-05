@@ -1,16 +1,14 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import {
   Address,
   IBalanceEvent,
+  KaspaClient,
   UtxoProcessorEventType,
   UtxoProcessorNotificationCallback,
-  KaspaClient,
 } from "@repo/kaspa";
-import useLocalStorageState from "use-local-storage-state";
 import { Amount } from "./Amount";
 import { CreateTransactionForm } from "./CreateTransactionForm";
-import { SEED_PHRASE_KEY } from "./constants";
 
 enum NodeStatus {
   Disconnected = "Disconnected",
@@ -19,33 +17,23 @@ enum NodeStatus {
 }
 
 interface WalletProps {
-  networkType: string;
-  password: string;
-  seedPhrase?: string;
+  client: KaspaClient;
 }
 
-export function Wallet(props: WalletProps) {
-  const { networkType, password, seedPhrase } = props;
-  const client = useMemo(
-    () => new KaspaClient(networkType, password, seedPhrase),
-    [password, seedPhrase, networkType],
-  );
+export function Wallet({ client }: WalletProps) {
   const [address, setAddress] = useState<Address | undefined>();
-  const [, setSeedPhrase] = useLocalStorageState<string | undefined>(
-    SEED_PHRASE_KEY,
-  );
-  const [loading, setLoading] = useState(false);
+
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | undefined>();
   const [balance, setBalance] = useState<bigint | undefined>();
   const [nodeStatus, setNodeStatus] = useState<NodeStatus>(
     NodeStatus.Disconnected,
   );
+  const [connected, setConnected] = useState(false);
 
   const regenerateAddress = async () => {
     setLoading(true);
     try {
-      const key = await client.generateNewPrivateKey();
-      setSeedPhrase(key.seedPhrase);
       setAddress(client.getAddress());
     } catch (err) {
       setError("Error generating new address");
@@ -70,6 +58,7 @@ export function Wallet(props: WalletProps) {
       }
       case "connect": {
         setNodeStatus(NodeStatus.Connected);
+        setConnected(true);
         break;
       }
       case "daa-score-change": {
@@ -88,7 +77,6 @@ export function Wallet(props: WalletProps) {
         setLoading(true);
         await client.connect(handleEvent);
         setAddress(client.getAddress());
-        setSeedPhrase(client.seedPhrase);
       } catch (err) {
         setError("Error connecting to node");
         console.error(err);
@@ -101,7 +89,7 @@ export function Wallet(props: WalletProps) {
     return () => {
       client.disconnect();
     };
-  }, []);
+  }, [client]);
 
   useEffect(() => {
     if (client.rpc) {
@@ -115,6 +103,10 @@ export function Wallet(props: WalletProps) {
     }
   }, [address, client]);
 
+  if (!connected) {
+    return <p>Connecting...</p>;
+  }
+
   return (
     <>
       <div className="card">
@@ -123,11 +115,15 @@ export function Wallet(props: WalletProps) {
           Balance: <Amount value={balance} />
         </h2>
         <p>
+          <strong>Label:</strong> {client.label}
+        </p>
+        <p>
           <strong>Address:</strong>
           {loading ? "Loading..." : address?.toString()}
         </p>
         <p>
-          <strong>Seed Phrase:</strong> {loading ? "Loading..." : seedPhrase}
+          <strong>Seed Phrase:</strong>{" "}
+          {loading ? "Loading..." : client.seedPhrase}
         </p>
         <p>
           <strong>Node Status:</strong> {nodeStatus}

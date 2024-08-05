@@ -1,6 +1,9 @@
 import {
+  Address,
+  createTransactions,
   default as kaspa,
   Encoding,
+  kaspaToSompi,
   Mnemonic,
   NetworkId,
   PrivateKey,
@@ -8,13 +11,17 @@ import {
   RpcClient,
   UtxoContext,
   UtxoProcessor,
-  Address,
-  kaspaToSompi,
-  createTransactions,
   type UtxoProcessorNotificationCallback,
 } from "@repo/kaspa-wasm";
 
 const WORD_COUNT = 12;
+
+export interface KaspaClientOptions {
+  password: string;
+  label: string;
+  networkType?: string;
+  seedPhrase?: string;
+}
 
 export class KaspaClient {
   private networkType: string;
@@ -24,14 +31,20 @@ export class KaspaClient {
   public privateKey?: PrivateKey;
   public rpc?: RpcClient;
   public connected = false;
+  public label?: string;
 
-  constructor(networkType = "mainnet", password: string, seedPhrase?: string) {
-    console.log("constructor");
-    this.networkType = networkType;
+  constructor({
+    networkType,
+    password,
+    seedPhrase,
+    label,
+  }: KaspaClientOptions) {
+    this.networkType = networkType || "mainnet";
     this.password = password;
     if (seedPhrase) {
       this.seedPhrase = seedPhrase;
     }
+    this.label = label;
   }
 
   async connect(callback: UtxoProcessorNotificationCallback) {
@@ -43,7 +56,7 @@ export class KaspaClient {
     // load wasm files
     await kaspa();
     // generate private key first
-    this.generatePrivateKey(this.password, this.seedPhrase);
+    this.setPrivateKey(this.password, this.seedPhrase);
 
     const networkId = new NetworkId(this.networkType);
     // 1) Initialize RPC
@@ -108,7 +121,7 @@ export class KaspaClient {
     for (const pending of response.transactions) {
       console.log("Pending transaction:", pending);
       console.log("Signing tx with secret key:", this.privateKey.toString());
-      await pending.sign([this.privateKey]);
+      pending.sign([this.privateKey]);
       console.log("Submitting pending tx to RPC ...");
       const txid = await pending.submit(this.rpc);
       console.log("Node responded with txid:", txid);
@@ -118,10 +131,11 @@ export class KaspaClient {
   }
 
   disconnect() {
-    this.rpc?.disconnect();
+    this.connected = false;
+    return this.rpc?.disconnect();
   }
 
-  generatePrivateKey(password: string, seedPhrase?: string) {
+  setPrivateKey(password: string, seedPhrase?: string) {
     const mnemonic = seedPhrase
       ? new Mnemonic(seedPhrase)
       : Mnemonic.random(WORD_COUNT);
@@ -138,7 +152,7 @@ export class KaspaClient {
     if (oldAddress) {
       await this.rpc?.unsubscribeUtxosChanged([oldAddress]);
     }
-    const key = this.generatePrivateKey(this.password);
+    const key = this.setPrivateKey(this.password);
     const newAddress = this.getAddress();
     if (newAddress) {
       await this.rpc?.subscribeUtxosChanged([newAddress]);

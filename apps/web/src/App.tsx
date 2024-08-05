@@ -1,24 +1,43 @@
-import { useState } from "react";
+import React from "react";
 import "./App.css";
-import useLocalStorageState from "use-local-storage-state";
-import { Wallet } from "./Wallet";
-import { NETWORK_TYPE, SEED_PHRASE_KEY } from "./constants";
+import { useAppContext } from "./AppContext.tsx";
+
+import { NETWORK_TYPE } from "./constants.ts";
+import Wallet from "./Wallet.tsx";
+import { LocalWallets } from "./components/LocalWallets.tsx";
+import { CreateWalletDialog } from "./components/CreateWalletDialog.tsx";
+import { UnlockWalletDialog } from "./components/UnlockWalletDialog.tsx";
+import { Header } from "./components/Header.tsx";
 
 function App() {
-  // TODO: implement password input
-  const [password] = useState<string>("password");
-  const [seedPhrase] = useLocalStorageState<string | undefined>(
-    SEED_PHRASE_KEY,
-  );
+  const { currentWallet } = useAppContext();
+  const [selectedWalletLabel, setSelectedWalletLabel] =
+    React.useState<string>("");
 
   return (
     <>
-      <h1>Silver Wallet </h1>
-      <Wallet
-        password={password}
-        seedPhrase={seedPhrase}
-        networkType={NETWORK_TYPE}
-      />
+      <Header />
+      <main className="main">
+        <div className="flex-container">
+          <span>
+            <code>{NETWORK_TYPE}</code>
+          </span>
+          {!currentWallet ? (
+            <>
+              <LocalWallets
+                selectedWalletLabel={selectedWalletLabel}
+                setSelectedWalletLabel={setSelectedWalletLabel}
+              />
+              <div className="flex-row">
+                <CreateWalletDialog />
+                <UnlockWalletDialog selectedWalletLabel={selectedWalletLabel} />
+              </div>
+            </>
+          ) : (
+            <Wallet client={currentWallet} />
+          )}
+        </div>
+      </main>
     </>
   );
 }

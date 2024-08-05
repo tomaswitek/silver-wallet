@@ -1,0 +1,14 @@
+header {
+    border-bottom: 1px solid #646cff;
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+    width: 100%;
+    justify-content: space-between;
+    padding: 1em;
+
+    span {
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+}
