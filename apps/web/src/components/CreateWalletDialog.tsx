@@ -2,49 +2,72 @@ import React from "react";
 
 import { KaspaClient } from "@repo/kaspa";
 import { useAppContext } from "../AppContext.tsx";
-import NewWalletForm, { NewWalletFormResult } from "./NewWalletForm.tsx";
+import CreateWalletForm, {
+  CreateWalletFormResult,
+} from "./CreateWalletForm.tsx";
 import { NETWORK_TYPE } from "../constants.ts";
 import { encryptMnemonic } from "../cryptoUtils.ts";
-import AppModal from "./AppModal.tsx";
+import Dialog from "./Dialog.tsx";
 
 export const CreateWalletDialog: React.FC = () => {
-  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const { addWallet, setCurrentWallet, wallets } = useAppContext();
+  const [error, setError] = React.useState<string | null>(null);
+  const [initializingWallet, setInitializingWallet] = React.useState(false);
 
-  async function handleCreateWallet({ label, password }: NewWalletFormResult) {
+  const handleCreateWallet = async ({
+    label,
+    password,
+  }: CreateWalletFormResult) => {
     if (!password || !label) {
       return;
     }
-    const newWallet = new KaspaClient({
+    setInitializingWallet(true);
+    const client = new KaspaClient({
       networkType: NETWORK_TYPE,
       password,
       label,
     });
-    await newWallet.connect((e) => {
+    await client.connect((e) => {
       if (e.event === "connect") {
         console.log("Connected");
       }
     });
-    const { seedPhrase } = newWallet.getPrivateKey(password);
-    const encryptedMnemonic = await encryptMnemonic(seedPhrase, password);
-    addWallet({ label, mnemonic: encryptedMnemonic });
-    setCurrentWallet(newWallet);
-  }
+    const { seedPhrase } = client.setPrivateKey(password);
+    await client.disconnect();
+    setInitializingWallet(false);
+    encryptMnemonic(seedPhrase, password)
+      .then((encryptedMnemonic) => {
+        addWallet({ label, mnemonic: encryptedMnemonic });
+        setCurrentWallet(client);
+      })
+      .catch((e) => {
+        console.error(e);
+        setError("Error encrypting mnemonic");
+      });
+  };
 
   return (
     <>
-      <button onClick={() => setDialogOpen(true)}>New wallet</button>
-      <AppModal
+      <button onClick={() => setIsDialogOpen(true)}>New wallet</button>
+      <Dialog
         title="Create New Wallet"
-        isOpen={dialogOpen}
-        close={() => setDialogOpen(false)}
+        isOpen={isDialogOpen}
+        close={() => setIsDialogOpen(false)}
       >
-        <NewWalletForm
-          wallets={wallets}
-          onSubmit={handleCreateWallet}
-          onCancel={() => setDialogOpen(false)}
-        />
-      </AppModal>
+        {!initializingWallet ? (
+          <>
+            <CreateWalletForm
+              wallets={wallets}
+              onSubmit={handleCreateWallet}
+              onCancel={() => setIsDialogOpen(false)}
+            />
+            {error && <code>{error}</code>}
+          </>
+        ) : (
+          <div>Initializing wallet...</div>
+        )}
+      </Dialog>
     </>
   );
 };

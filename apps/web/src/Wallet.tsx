@@ -7,10 +7,8 @@ import {
   UtxoProcessorEventType,
   UtxoProcessorNotificationCallback,
 } from "@repo/kaspa";
-import useLocalStorageState from "use-local-storage-state";
 import { Amount } from "./Amount";
 import { CreateTransactionForm } from "./CreateTransactionForm";
-import { SEED_PHRASE_KEY } from "./constants";
 
 enum NodeStatus {
   Disconnected = "Disconnected",
@@ -24,21 +22,18 @@ interface WalletProps {
 
 export function Wallet({ client }: WalletProps) {
   const [address, setAddress] = useState<Address | undefined>();
-  const [, setSeedPhrase] = useLocalStorageState<string | undefined>(
-    SEED_PHRASE_KEY,
-  );
-  const [loading, setLoading] = useState(false);
+
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | undefined>();
   const [balance, setBalance] = useState<bigint | undefined>();
   const [nodeStatus, setNodeStatus] = useState<NodeStatus>(
     NodeStatus.Disconnected,
   );
+  const [connected, setConnected] = useState(false);
 
   const regenerateAddress = async () => {
     setLoading(true);
     try {
-      const key = await client.generateNewPrivateKey();
-      setSeedPhrase(key.seedPhrase);
       setAddress(client.getAddress());
     } catch (err) {
       setError("Error generating new address");
@@ -63,6 +58,7 @@ export function Wallet({ client }: WalletProps) {
       }
       case "connect": {
         setNodeStatus(NodeStatus.Connected);
+        setConnected(true);
         break;
       }
       case "daa-score-change": {
@@ -81,7 +77,6 @@ export function Wallet({ client }: WalletProps) {
         setLoading(true);
         await client.connect(handleEvent);
         setAddress(client.getAddress());
-        setSeedPhrase(client.seedPhrase);
       } catch (err) {
         setError("Error connecting to node");
         console.error(err);
@@ -94,7 +89,7 @@ export function Wallet({ client }: WalletProps) {
     return () => {
       client.disconnect();
     };
-  }, []);
+  }, [client]);
 
   useEffect(() => {
     if (client.rpc) {
@@ -107,6 +102,10 @@ export function Wallet({ client }: WalletProps) {
       });
     }
   }, [address, client]);
+
+  if (!connected) {
+    return <p>Connecting...</p>;
+  }
 
   return (
     <>

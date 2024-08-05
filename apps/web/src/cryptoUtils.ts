@@ -1,3 +1,5 @@
+import { InvalidPasswordException } from "./exceptions/InvalidPasswordException.ts";
+
 export async function encryptMnemonic(
   mnemonic: string,
   password: string,
@@ -76,11 +78,18 @@ export async function decryptMnemonic(
     ["decrypt"],
   );
 
-  const decryptedContent = await window.crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: iv },
-    key,
-    data,
-  );
-
-  return decoder.decode(decryptedContent);
+  try {
+    const decryptedContent = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      key,
+      data,
+    );
+    return decoder.decode(decryptedContent);
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "OperationError") {
+      throw new InvalidPasswordException();
+    } else {
+      throw e;
+    }
+  }
 }

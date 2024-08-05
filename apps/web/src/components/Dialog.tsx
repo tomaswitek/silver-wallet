@@ -1,18 +1,13 @@
 import React, { ReactNode, useEffect } from "react";
 
-interface AppModalProps {
+interface DialogProps {
   title?: string;
   children: ReactNode;
   isOpen?: boolean;
   close?: () => void;
 }
 
-const AppModal: React.FC<AppModalProps> = ({
-  title,
-  children,
-  isOpen,
-  close,
-}) => {
+const Dialog: React.FC<DialogProps> = ({ title, children, isOpen, close }) => {
   const dialogRef = React.useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -37,4 +32,4 @@ const AppModal: React.FC<AppModalProps> = ({
   );
 };
 
-export default AppModal;
+export default Dialog;

@@ -4,7 +4,7 @@ import { KaspaClient } from "@repo/kaspa";
 import { useAppContext } from "../AppContext.tsx";
 import { decryptMnemonic } from "../cryptoUtils.ts";
 import { NETWORK_TYPE } from "../constants.ts";
-import AppModal from "./AppModal.tsx";
+import Dialog from "./Dialog.tsx";
 import PasswordForm from "./PasswordForm.tsx";
 
 export const UnlockWalletDialog: React.FC<{ selectedWalletLabel: string }> = ({
@@ -12,6 +12,7 @@ export const UnlockWalletDialog: React.FC<{ selectedWalletLabel: string }> = ({
 }) => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { setCurrentWallet, wallets } = useAppContext();
+  const [error, setError] = React.useState<string | null>(null);
 
   const handleUnlockWallet = async (password: string) => {
     const encryptedWallet = wallets.find(
@@ -19,20 +20,26 @@ export const UnlockWalletDialog: React.FC<{ selectedWalletLabel: string }> = ({
     );
     if (!encryptedWallet) {
       return;
-      //todo: handle error
     }
-    const decryptedMnemonic = await decryptMnemonic(
-      encryptedWallet.mnemonic,
-      password,
-    );
-    const wallet = new KaspaClient({
-      networkType: NETWORK_TYPE,
-      password,
-      seedPhrase: decryptedMnemonic,
-      label: selectedWalletLabel,
-    });
-
-    setCurrentWallet(wallet);
+    decryptMnemonic(encryptedWallet.mnemonic, password)
+      .then((decryptedMnemonic) => {
+        const wallet = new KaspaClient({
+          networkType: NETWORK_TYPE,
+          password,
+          seedPhrase: decryptedMnemonic,
+          label: selectedWalletLabel,
+        });
+        setCurrentWallet(wallet);
+      })
+      .catch((e) => {
+        console.error(e);
+        if (e.name === "InvalidPasswordException") {
+          setError("Invalid password");
+          return;
+        } else {
+          setError("Error decrypting mnemonic");
+        }
+      });
   };
 
   return (
@@ -43,16 +50,19 @@ export const UnlockWalletDialog: React.FC<{ selectedWalletLabel: string }> = ({
       >
         Unlock wallet
       </button>
-      <AppModal
+      <Dialog
         title="Enter wallet password"
         isOpen={dialogOpen}
         close={() => setDialogOpen(false)}
       >
-        <PasswordForm
-          onSubmit={handleUnlockWallet}
-          onCancel={() => setDialogOpen(false)}
-        />
-      </AppModal>
+        <>
+          {error && <code className="error">{error}</code>}
+          <PasswordForm
+            onSubmit={handleUnlockWallet}
+            onCancel={() => setDialogOpen(false)}
+          />
+        </>
+      </Dialog>
     </>
   );
 };

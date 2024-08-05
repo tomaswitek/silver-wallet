@@ -1,19 +1,20 @@
 import React, { useState } from "react";
 import { EncryptedWallet } from "../types.ts";
 import PasswordStrengthMeter from "./PasswordStrengthMeter.tsx";
+import Form from "./Form.tsx";
 
-export interface NewWalletFormResult {
+export interface CreateWalletFormResult {
   label: string;
   password: string;
 }
 
-interface NewWalletFormProps {
+interface CreateWalletFormProps {
   wallets: EncryptedWallet[];
-  onSubmit: (result: NewWalletFormResult) => void;
+  onSubmit: (result: CreateWalletFormResult) => void;
   onCancel: () => void;
 }
 
-const NewWalletForm: React.FC<NewWalletFormProps> = ({
+const CreateWalletForm: React.FC<CreateWalletFormProps> = ({
   onSubmit,
   onCancel,
   wallets,
@@ -62,7 +63,7 @@ const NewWalletForm: React.FC<NewWalletFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex-container">
+    <Form onSubmit={handleSubmit}>
       <div className="flex-row justify-between">
         <label htmlFor="label">Label:</label>
         <input
@@ -97,7 +98,7 @@ const NewWalletForm: React.FC<NewWalletFormProps> = ({
         />
       </div>
       <PasswordStrengthMeter password={password} />
-      {error && <p className="error">{error}</p>}
+      {error && <code className="error">{error}</code>}
       <div className="flex-row justify-between">
         <button
           onClick={() => {
@@ -119,8 +120,8 @@ const NewWalletForm: React.FC<NewWalletFormProps> = ({
           Confirm
         </button>
       </div>
-    </form>
+    </Form>
   );
 };
 
-export default NewWalletForm;
+export default CreateWalletForm;

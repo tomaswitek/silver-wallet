@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Form from "./Form";
 
 interface PasswordFormProps {
   onSubmit: (password: string) => void;
@@ -31,7 +32,7 @@ const PasswordForm: React.FC<PasswordFormProps> = ({ onSubmit, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex-container">
+    <Form onSubmit={handleSubmit}>
       <div className="flex-row justify-between">
         <label htmlFor="password">Password:</label>
         <input
@@ -54,7 +55,7 @@ const PasswordForm: React.FC<PasswordFormProps> = ({ onSubmit, onCancel }) => {
           required
         />
       </div>
-      {error && <p className="error">{error}</p>}
+      {error && <code className="error">{error}</code>}
       <div className="flex-row justify-between">
         <button
           type="button"
@@ -72,7 +73,7 @@ const PasswordForm: React.FC<PasswordFormProps> = ({ onSubmit, onCancel }) => {
           Confirm
         </button>
       </div>
-    </form>
+    </Form>
   );
 };
 
